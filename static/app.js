@@ -164,7 +164,21 @@ async function doSearch() {
 
     // 400 means bad user input; surface the server's message.
     if (!res.ok) {
-      errorText.textContent = data.error || "Invalid request.";
+      let msg = data.error || "Invalid request.";
+      // If the backend suggests a correction, show a clickable hint
+      if (data.suggestion) {
+        errorText.innerHTML = `
+          ${escHtml(msg)}<br><br>
+          Did you mean <strong>${escHtml(data.suggestion)}</strong>?
+          <button onclick="useSuggestion('${escHtml(data.suggestion)}')"
+            style="margin-left:8px; background:var(--terra); color:#fff;
+                   border:none; border-radius:6px; padding:4px 12px;
+                   cursor:pointer; font-size:0.9rem;">
+            Search this
+          </button>`;
+      } else {
+        errorText.textContent = msg;
+      }
       showState("error");
       return;
     }
@@ -187,7 +201,10 @@ async function doSearch() {
     setLoading(false);
   }
 }
-
+function useSuggestion(name) {
+  input.value = name;
+  doSearch();
+}
 // ─── Event listeners ──────────────────────────────────────────────────────────
 searchBtn.addEventListener("click", doSearch);
 
